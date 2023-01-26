@@ -21,9 +21,12 @@ validators = [
     Validator("HOST_CONNECTION_TIMEOUT", default=None),
     Validator("HOST_SSH_PORT", default=22),
     Validator("HOST_SSH_KEY_FILENAME", default=None),
+    Validator("LOGGING", is_type_of=dict),
+    Validator("LOGGING.CONSOLE_LEVEL", is_in=["error", "warning", "info", "debug", "trace", "silent"], default="info"),
+    Validator("LOGGING.FILE_LEVEL", is_in=["error", "warning", "info", "debug", "trace", "silent"], default="debug"),
 ]
 
-# temportary fix for dynaconf #751
+# temporary fix for dynaconf #751
 vault_vars = {k: v for k, v in os.environ.items() if "VAULT_" in k}
 for k in vault_vars:
     del os.environ[k]
@@ -34,7 +37,7 @@ settings = Dynaconf(
     validators=validators,
 )
 # to make doubly sure, remove the vault loader if set somehow
-settings._loaders = [loader for loader in settings._loaders if not "vault" in loader]
+settings._loaders = [loader for loader in settings._loaders if "vault" not in loader]
 
 try:
     settings.validators.validate()
