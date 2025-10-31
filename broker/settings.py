@@ -40,8 +40,7 @@ BASE_VALIDATORS = [
     Validator("SSH.HOST_CONNECTION_TIMEOUT", default=60),
     Validator("SSH.HOST_SSH_PORT", default=22),
     Validator("SSH.HOST_SSH_KEY_FILENAME", default=None),
-    Validator("SSH.HOST_IPV6", default=False),
-    Validator("SSH.HOST_IPV4_FALLBACK", default=True),
+    Validator("SSH.HOST_IP_MODE", is_in=["auto", "v4", "v6"], default="auto"),
     Validator("SSH.BACKEND", default="hussh"),
     Validator("LOGGING", is_type_of=dict),
     Validator(

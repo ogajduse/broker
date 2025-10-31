@@ -58,8 +58,10 @@ class Host:
             connection_timeout: (int) - Timeout for SSH connection
             port: (int) - Port to use for SSH connection
             key_filename: (str) - Path to SSH key file to use for SSH connection
-            ipv6 (bool): Whether or not to use IPv6. Defaults to False.
-            ipv4_fallback (bool): Whether or not to fallback to IPv4 if IPv6 fails. Defaults to True.
+            ip_mode (str): IP stack to use. Can be 'auto', 'v4', or 'v6'. Defaults to 'auto'.
+                          - 'auto': Prefer IPv6, with IPv4 fallback.
+                          - 'v4': Use IPv4 only.
+                          - 'v6': Use IPv6 only.
 
         If `broker_settings` is provided, it will be used over Broker's global settings.
         """
@@ -94,8 +96,24 @@ class Host:
         self.timeout = kwargs.pop("connection_timeout", self._settings.SSH.HOST_CONNECTION_TIMEOUT)
         self.port = kwargs.pop("port", self._settings.SSH.HOST_SSH_PORT)
         self.key_filename = kwargs.pop("key_filename", self._settings.SSH.HOST_SSH_KEY_FILENAME)
-        self.ipv6 = kwargs.pop("ipv6", self._settings.SSH.HOST_IPV6)
-        self.ipv4_fallback = kwargs.pop("ipv4_fallback", self._settings.SSH.HOST_IPV4_FALLBACK)
+
+        # Handle IP mode with backward compatibility for kwargs only
+        # (settings are migrated automatically via config_migrations/v0_7_1.py)
+        if "ip_mode" in kwargs:
+            self.ip_mode = kwargs.pop("ip_mode")
+        elif "ipv6" in kwargs or "ipv4_fallback" in kwargs:
+            # Backward compatibility: translate old kwarg parameters to ip_mode
+            ipv6 = kwargs.pop("ipv6", False)
+            ipv4_fallback = kwargs.pop("ipv4_fallback", True)
+            if ipv6 and ipv4_fallback:
+                self.ip_mode = "auto"
+            elif ipv6 and not ipv4_fallback:
+                self.ip_mode = "v6"
+            else:
+                self.ip_mode = "v4"
+        else:
+            # Use setting from config (has default="auto" from validator)
+            self.ip_mode = self._settings.SSH.HOST_IP_MODE
         self.__dict__.update(kwargs)  # Make every other kwarg an attribute
         self._session = None
 
@@ -164,6 +182,7 @@ class Host:
                     "timeout",
                     self._settings.get("SSH", {}).get("HOST_CONNECTION_TIMEOUT", 60),
                 ),
+                ip_mode=getattr(self, "ip_mode", "auto"),
                 host=self.hostname,  # For hussh backend compatibility
             )
 

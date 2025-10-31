@@ -41,13 +41,16 @@ class Session:
             port (int): The port number to connect to. Defaults to 22.
             key_filename (str): The path to the private key file to use for authentication.
             password (str): The password to use for authentication.
-            ipv6 (bool): Whether or not to use IPv6. Defaults to False.
-            ipv4_fallback (bool): Whether or not to fallback to IPv4 if IPv6 fails. Defaults to True.
+            ip_mode (str): The IP stack to use. Can be 'auto', 'v4', or 'v6'.
+                           - 'auto': (Default) Prefer IPv6, with IPv4 fallback.
+                           - 'v4': Use IPv4 only.
+                           - 'v6': Use IPv6 only.
 
         Raises:
             AuthException: If no password or key file is provided.
             ConnectionError: If the connection fails.
             FileNotFoundError: If the key file is not found.
+            ValueError: If an invalid ip_mode is provided.
         """
         host = kwargs.get("hostname", "localhost")
         user = kwargs.get("username", "root")
@@ -56,13 +59,28 @@ class Session:
         password = kwargs.get("password")
         timeout = kwargs.get("timeout", 60)
 
+        # Translate ip_mode to ipv6 and ipv4_fallback settings
+        ip_mode = kwargs.get("ip_mode", "auto")
+
+        if ip_mode == "auto":
+            ipv6_setting = True
+            ipv4_fallback_setting = True
+        elif ip_mode == "v6":
+            ipv6_setting = True
+            ipv4_fallback_setting = False
+        elif ip_mode == "v4":
+            ipv6_setting = False
+            ipv4_fallback_setting = False  # This flag is ignored when ipv6_setting is False
+        else:
+            raise ValueError(f"Invalid ip_mode '{ip_mode}'. Must be 'auto', 'v4', or 'v6'.")
+
         # Create the socket
         self.sock, self.is_ipv6 = _create_connect_socket(
             host,
             port,
             timeout,
-            ipv6=kwargs.get("ipv6", False),
-            ipv4_fallback=kwargs.get("ipv4_fallback", True),
+            ipv6=ipv6_setting,
+            ipv4_fallback=ipv4_fallback_setting,
         )
 
         self.session = _Session()

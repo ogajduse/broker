@@ -50,8 +50,7 @@ def broker_settings():
             "host_password": "toor",
             "host_ssh_port": 22,
             "host_ssh_key_filename": "tests/data/ssh/test_key",
-            "host_ipv6": False,
-            "host_ipv4_fallback": True,
+            "host_ip_mode": "v4",
         },
         "LOGGING": {
             "console_level": "info", 

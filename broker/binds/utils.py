@@ -45,8 +45,8 @@ def _create_connect_socket(host, port, timeout, ipv6=False, ipv4_fallback=True, 
         except socket.gaierror as err:
             if ipv4_fallback:
                 logger.warning(f"IPv6 connection failed to {host}. Falling back to IPv4.")
-                # FIXME this socket was created for AF_INET6. We shouldn't reuse it with ipv6=False.
-                return _create_connect_socket(host, port, timeout, ipv6=False, sock=sock)
+                # FIX: Do not pass the old AF_INET6 socket.
+                return _create_connect_socket(host, port, timeout, ipv6=False)
             else:
                 raise exceptions.ConnectionError(
                     f"Unable to establish IPv6 connection to {host}."

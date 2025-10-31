@@ -26,10 +26,8 @@ ssh:
     host_password: "<password>"
     host_ssh_port: 22
     host_ssh_key_filename: "</path/to/the/ssh-key>"
-    # Default all host ssh connections to IPv6
-    host_ipv6: False
-    # If IPv6 connection attempts fail, fallback to IPv4
-    host_ipv4_fallback: True
+    # IP mode for SSH connections: 'auto' (prefer IPv6, fallback to IPv4), 'v4' (IPv4 only), or 'v6' (IPv6 only)
+    host_ip_mode: auto
 # Provider settings
 AnsibleTower:
     base_url: "https://<ansible tower host>/"
